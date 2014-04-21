@@ -23,7 +23,11 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     
     url(r'^api/(?P<ws_id>\d+)/entries/$', views.entries, name='entries'),
+    
+    #POST here to create a new entry
+    url(r'^api/(?P<ws_id>\d+)/entry$', views.entry, name='entry'),
+
     url(r'^api/(?P<ws_id>\d+)/entry/(?P<en_id>\d+)$', views.entry, name='entry'),
-    url(r'^api/(?P<ws_id>\d+)/entry/(?P<en_id>\d+)/$', views.entry, name='entry'),
+
     url(r'^api/(?P<ws_id>\d+)/$', views.workspace, name='workspace'),
 )

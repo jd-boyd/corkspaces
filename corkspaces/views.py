@@ -6,6 +6,8 @@ import django.db
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import RequestContext, loader
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 
 from corkspaces import models
 
@@ -14,7 +16,7 @@ from corkspaces import models
 def index(request):
     return HttpResponse("Hello, world.")
 
-
+@never_cache
 def ws_page(request, ws_id):
 
     template = loader.get_template('index.html')
@@ -22,8 +24,8 @@ def ws_page(request, ws_id):
     entries = ws.entry_set.all()
 
     context = RequestContext(request, {
-        'workspace': json.dumps(to_json(ws)),
-        'entries': json.dumps(to_json(entries)),
+        'workspace': to_json(ws),
+        'entries': to_json(entries),
     })
     return HttpResponse(template.render(context))
 
@@ -51,8 +53,36 @@ def entries(request, ws_id):
     entries = models.Workspace.objects.get(id=ws_id).entry_set.all()
     return HttpResponse(to_json(entries), content_type='application/json')
 
+@never_cache
+@csrf_exempt
+def entry(request, ws_id, en_id=None):
+    if en_id is None and request.method == "POST":
+        print "New note"
+        entry = models.Workspace.objects.get(id=ws_id).entry_set.create()
+    else:
+        entry = models.Entry.objects.get(id=en_id)
+        assert entry.workspace.id == int(ws_id)
 
-def entry(request, ws_id, en_id):
+    if request.method == "DELETE":
+        #TODO: Do delete
+        return HttpResponse({
+            'workspace': ws_id,
+            'id': en_id
+            }, content_type='application/json')
+
+    if request.method in ["PUT", "PATCH", "POST"]:
+        new_data = json.loads(request.body)
+
+        for f in ['workspace', 'id', 'date_touched', 'isdropped', 'date_added']:
+            new_data.pop(f, None)
+
+        for k, v in new_data.items():
+            print "updating", k, "with", repr(v)
+            setattr(entry, k, v)
+        entry.save()
+
+    if request.method == "GET":
+        pass
+
     entry = models.Entry.objects.get(id=en_id)
-    assert entry.workspace.id == int(ws_id)
     return HttpResponse(to_json(entry), content_type='application/json')

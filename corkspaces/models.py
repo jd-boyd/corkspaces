@@ -1,3 +1,7 @@
+from __future__ import absolute_import, print_function, unicode_literals
+
+import datetime
+
 from django.db import models
 from django_extensions.db.fields import UUIDField
 
@@ -42,13 +46,13 @@ class User(MyModel, models.Model):
     #     self.validated = True
 
     def __repr__(self):
-        return "<User(%r, %r, %r)>" % (self.uid, self.name, self.validated)
+        return "User(%r, %r, %r)" % (self.uid, self.name, self.validated)
 
 
 class Workspace(MyModel, models.Model):
     #column definitions
-    date_added = models.DateTimeField()
-    date_touched = models.DateTimeField()
+    date_added = models.DateTimeField(default=lambda:datetime.datetime.now())
+    date_touched = models.DateTimeField(default=lambda:datetime.datetime.now())
     isdropped = models.BooleanField()
     title = models.TextField()
     #user = models.ForeignKey(User)
@@ -66,9 +70,9 @@ class Workspace(MyModel, models.Model):
     # def __repr__(self):
     #     return "<Workspace(%r, %r, %r)>" % (self.cid, self.uid, self.url)
 
-    # def as_dict(self):
-    #     return {c.name: datetime_to_int(getattr(self, c.name))
-    #             for c in self.__table__.columns}
+    def __str__(self):
+        return "pk=%d, title=%s" % (self.pk,
+                                    self.title)
 
     def drop(self):
         self.isdropped = True
@@ -76,9 +80,9 @@ class Workspace(MyModel, models.Model):
 
 class Entry(MyModel, models.Model):
     #column definitions
-    date_added = models.DateTimeField()
-    date_touched = models.DateTimeField()
-    isdropped = models.BooleanField()
+    date_added = models.DateTimeField(default=lambda:datetime.datetime.now())
+    date_touched = models.DateTimeField(default=lambda:datetime.datetime.now())
+    isdropped = models.BooleanField(default=lambda:False)
     workspace = models.ForeignKey(Workspace)
     #user = models.ForeignKey(User)
     
@@ -89,6 +93,12 @@ class Entry(MyModel, models.Model):
 
     content = models.TextField()
 
+    def __str__(self):
+        return "pk=%d, workspace=%d, content=%s" % (self.pk,
+                                                    self.workspace.pk,
+                                                    self.content)
+        
+        
     #relation definitions
     # def __init__(self, uid, cid, url, title):
     #     ts = datetime.datetime.today()

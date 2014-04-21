@@ -1,6 +1,6 @@
 requirejs.config({
     appDir: "/static/",
-    baseUrl: "js",
+    baseUrl: "/static/",
     paths: { 
         /* Load jquery from google cdn. On fail, load local file. */
         'jquery': ['//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min'],
@@ -8,17 +8,31 @@ requirejs.config({
         /* Load bootstrap from cdn. On fail, load local file. */
         'bootstrap': ['//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min'],
         'domready': ['//cdnjs.cloudflare.com/ajax/libs/require-domReady/2.0.1/domReady.min'],
+	'backbone': ['//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min'],
+	'underscore': ['//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min']
     },
     shim: {
         /* Set bootstrap dependencies (just jQuery) */
         'bootstrap' : ['jquery'],
-        'jquery-ui' : ['jquery']
+        'jquery-ui' : ['jquery'],
+	'backbone': {
+	    deps: ['underscore', 'jquery'],
+	    exports: 'Backbone'
+	}
     }
 });
 
-require(['domready', 'jquery', 'bootstrap', 'jquery-ui'], 
-	function(domReady, $) {
+require(['domready', 'jquery', 'underscore', 'backbone', 
+	 'models', 'views',
+	 'bootstrap', 'jquery-ui'], 
+	function(domReady, $, _, Backbone, models, views) {
+	    "use strict";
 	    console.log("Loaded :)");    
+
+	    window.workspace = new models.Workspace(workspace_data);
+	    window.entries = new models.Entries(entries_data);
+	    console.log('models inited');
+
 	    domReady(function () {
 		console.log('ready');
 
@@ -26,16 +40,16 @@ require(['domready', 'jquery', 'bootstrap', 'jquery-ui'],
 		    $(".workspace").height($(window).height());
 		});
 		$(".workspace").height($(window).height());
-		
-		$(".note").attr("contenteditable", "true").resizable({
-		    resize: function (event, ui) {
-			console.log('r', ui.size);
-		    }
-		}).draggable({
-		    drag: function (event, ui) {
-			console.log('d', ui.position);
-		    }
+		var v;
+		window.entries.each(function(e) {
+		    console.log('entry', e);
+		    v = new views.Entry({model: e});
+		    $('.workspace').append(v.render().el);
 		});
+		console.log('done');
+
+		window.ws_view = new views.Workspace({el: $('.workspace')})
+
 	    });
 	    return {};
 });
