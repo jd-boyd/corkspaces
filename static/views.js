@@ -10,7 +10,7 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 	    },
 	    initialize: function () {
 		_.bindAll(this, 'render', 'resize', 'drag', 'edit', 'clicked',
-			 'trash');
+			 'trash', 'unselect');
 		this.mode = 'drag';
 	    },
 	    trash: function () {
@@ -22,7 +22,14 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 		evt.stopPropagation();
 		console.log('note click');
 		this.trigger('click', this);
-		this.$el.toggleClass('selected');
+		this.$el.addClass('selected');
+		this.$el.resizable({
+		    resize: this.resize
+		})
+	    },
+	    unselect: function () {
+		this.$el.removeClass('selected');
+		this.$el.resizable('destroy');
 	    },
 	    resize: function (event, ui) {
 		console.log('r', ui.size);
@@ -61,9 +68,7 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 		    .on('input', this.edit);
 
 		this.$el.append(this.content);
-		this.$el.resizable({
-		    resize: this.resize
-		}).draggable({
+		this.$el.draggable({
 		    drag: this.drag,
 		    handle: handle
 		});
@@ -90,7 +95,7 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 	    note_select: function (note_view) {
 		console.log('note select', note_view.model.id);
 		if (this.current_note) {
-		    this.current_note.$el.toggleClass('selected');
+		    this.current_note.unselect();
 		}
 		this.current_note = note_view;
 	    },
