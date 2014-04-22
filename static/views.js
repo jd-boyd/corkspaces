@@ -1,20 +1,28 @@
-
 define(['domready', 'jquery', 'underscore', 'backbone'],
     function(domReady, $, _, Backbone) {
 	"use strict";
+
 	var Entry = Backbone.View.extend({
 	    className: "note",
 	    events: {
-		'click': 'clicked'
-		
+		'click': 'clicked',
+		'click .trash': 'trash'
 	    },
 	    initialize: function () {
-		_.bindAll(this, 'render', 'resize', 'drag', 'edit', 'clicked');
+		_.bindAll(this, 'render', 'resize', 'drag', 'edit', 'clicked',
+			 'trash');
 		this.mode = 'drag';
+	    },
+	    trash: function () {
+		console.log('trash');
+		this.model.destroy();
+		this.remove();
 	    },
 	    clicked: function (evt) {
 		evt.stopPropagation();
-
+		console.log('note click');
+		this.trigger('click', this);
+		this.$el.toggleClass('selected');
 	    },
 	    resize: function (event, ui) {
 		console.log('r', ui.size);
@@ -35,15 +43,16 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 		this.model.save();
 	    },
 	    render: function () {
-		
 		this.$el.css({left: this.model.get('x'),
 			      top: this.model.get('y'),
 			      width: this.model.get('width'),
 			      height: this.model.get('height')
 			      });
 
+		var trash = $("<div>").addClass("trash glyphicon glyphicon-trash");
+		this.$el.append(trash);
+
 		var handle = $("<div>").addClass('handle');
-		
 		this.$el.append(handle);
 
 		this.content = $("<div>").addClass('content')
@@ -65,16 +74,35 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 	);
 
 	var Workspace = Backbone.View.extend({
-	    className: "note",
+	    className: "workspace",
 	    events: {
 		'click': 'clicked'
 	    },
 	    initialize: function () {
 		_.bindAll(this, 'render', 'clicked');
+		console.log('ws view init');
 	    },
+	    current_note: null,
 	    clicked: function (evt) {
 		console.log('clicked BG', evt);
-		window.entries.create({x: evt.offsetX, y: evt.offsetY});
+		this.collection.create({x: evt.offsetX, y: evt.offsetY});
+	    },
+	    note_select: function (note_view) {
+		console.log('note select', note_view.model.id);
+		if (this.current_note) {
+		    this.current_note.$el.toggleClass('selected');
+		}
+		this.current_note = note_view;
+	    },
+	    render: function () {
+		console.log('ws render');
+		console.log(this.collection);
+		this.collection.each(function(e) {
+		    console.log('entry', e);
+		    var v = new Entry({model: e});
+		    this.listenTo(v, 'click', this.note_select);
+		    this.$el.append(v.render().el);
+		}, this);
 	    }
 
 	    });

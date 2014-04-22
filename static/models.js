@@ -4,6 +4,7 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 	var Workspace = Backbone.Model.extend(
 	    {}
 	);
+
 	var Entry = Backbone.Model.extend(
 	    {
 		defaults: {

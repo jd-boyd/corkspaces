@@ -40,17 +40,15 @@ require(['domready', 'jquery', 'underscore', 'backbone',
 		    $(".workspace").height($(window).height());
 		});
 		$(".workspace").height($(window).height());
-		var v;
-		window.entries.each(function(e) {
-		    console.log('entry', e);
-		    v = new views.Entry({model: e});
-		    $('.workspace').append(v.render().el);
+
+		window.ws_view = new views.Workspace({
+		    el: $('.workspace'),
+		    model: window.workspace,
+		    collection: window.entries
 		});
+		window.ws_view.render();
+
 		console.log('done');
-
-		window.ws_view = new views.Workspace({el: $('.workspace')})
-
 	    });
-	    return {};
 });
 

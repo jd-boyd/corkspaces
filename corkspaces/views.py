@@ -59,12 +59,13 @@ def entry(request, ws_id, en_id=None):
     if en_id is None and request.method == "POST":
         print "New note"
         entry = models.Workspace.objects.get(id=ws_id).entry_set.create()
+        en_id = entry.pk
     else:
         entry = models.Entry.objects.get(id=en_id)
         assert entry.workspace.id == int(ws_id)
 
     if request.method == "DELETE":
-        #TODO: Do delete
+        entry.delete()
         return HttpResponse({
             'workspace': ws_id,
             'id': en_id
