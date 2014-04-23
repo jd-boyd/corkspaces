@@ -3,7 +3,7 @@ import json
 
 import django.db
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt
@@ -14,7 +14,15 @@ from corkspaces import models
 # Create your views here.
 
 def index(request):
-    return HttpResponse("Hello, world.")
+    ws = models.Workspace.objects.create()
+    print "ws:", ws
+
+    entry = ws.entry_set.create(content='Welcome to your new corkspace',
+                                x=150, y=150)
+
+
+    return redirect("/%d" % ws.pk)
+    #return HttpResponse("Hello, world.")
 
 @never_cache
 def ws_page(request, ws_id):

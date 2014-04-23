@@ -13,7 +13,10 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 			 'trash', 'unselect');
 		this.mode = 'drag';
 	    },
-	    trash: function () {
+	    deleted: false,
+	    trash: function (evt) {
+		evt.stopPropagation();
+		this.deleted = true;
 		console.log('trash');
 		this.model.destroy();
 		this.remove();
@@ -21,6 +24,9 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 	    clicked: function (evt) {
 		evt.stopPropagation();
 		console.log('note click');
+		if (this.deleted) {
+		    return;
+		}
 		this.trigger('click', this);
 		this.$el.addClass('selected');
 		this.$el.resizable({
@@ -28,6 +34,9 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 		})
 	    },
 	    unselect: function () {
+		if (this.deleted) {
+		    return;
+		}
 		this.$el.removeClass('selected');
 		this.$el.resizable('destroy');
 	    },
@@ -69,7 +78,7 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 
 		this.$el.append(this.content);
 		this.$el.draggable({
-		    drag: this.drag,
+		    stop: this.drag,
 		    handle: handle
 		});
 
@@ -90,11 +99,15 @@ define(['domready', 'jquery', 'underscore', 'backbone'],
 	    current_note: null,
 	    clicked: function (evt) {
 		console.log('clicked BG', evt);
-		this.collection.create({x: evt.offsetX, y: evt.offsetY});
+		var new_note = this.collection.create({x: evt.offsetX, 
+						       y: evt.offsetY + 50});
+		var v = new Entry({model: new_note});
+		this.listenTo(v, 'click', this.note_select);
+		this.$el.append(v.render().el);
 	    },
 	    note_select: function (note_view) {
 		console.log('note select', note_view.model.id);
-		if (this.current_note) {
+		if (this.current_note && !this.current_note.deleted) {
 		    this.current_note.unselect();
 		}
 		this.current_note = note_view;

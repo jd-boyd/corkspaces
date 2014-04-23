@@ -50,11 +50,12 @@ class User(MyModel, models.Model):
 
 
 class Workspace(MyModel, models.Model):
+    
     #column definitions
     date_added = models.DateTimeField(default=lambda:datetime.datetime.now())
     date_touched = models.DateTimeField(default=lambda:datetime.datetime.now())
-    isdropped = models.BooleanField()
-    title = models.TextField()
+    isdropped = models.BooleanField(default=False)
+    title = models.TextField(default="New Workspace")
     #user = models.ForeignKey(User)
     
     #relation definitions
